@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">We Drive You</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
