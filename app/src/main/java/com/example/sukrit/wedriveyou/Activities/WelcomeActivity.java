@@ -10,11 +10,16 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.sukrit.wedriveyou.R;
+import com.example.sukrit.wedriveyou.Remote.IGoogleApi;
+import com.example.sukrit.wedriveyou.Utils.Common;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.github.glomadrian.materialanimatedswitch.MaterialAnimatedSwitch;
@@ -28,13 +33,27 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -61,6 +80,22 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
     MaterialAnimatedSwitch location_switch;
     SupportMapFragment mapFragment;
+
+    List<LatLng> polyLineList;
+    Marker pickupLocationMarker;
+    float v;
+    double lat,lng;
+    Handler handler;
+    LatLng startPosition, endPosition, currentPosition;
+
+    int index, next;
+    Button btnGo;
+    EditText edtPlace;
+    String destination;
+    PolylineOptions polylineOptions, blackPolyLineOptions;
+    Polyline blackPolyline, greyPolyline;
+
+    IGoogleApi mService;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -90,6 +125,20 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         mapFragment.getMapAsync(this);
 
         //Init view
+
+        polyLineList = new ArrayList<>();
+        btnGo = findViewById(R.id.btnGo);
+        edtPlace = findViewById(R.id.edtPlace);
+
+        btnGo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                destination = edtPlace.getText().toString();
+                destination = destination.replace(" ","+");
+                getDirection();
+            }
+        });
+
         location_switch = findViewById(R.id.location_switch);
         location_switch.setOnCheckedChangeListener(new MaterialAnimatedSwitch.OnCheckedChangeListener() {
             @Override
@@ -114,6 +163,51 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         drivers = FirebaseDatabase.getInstance().getReference("Drivers");
         geoFire = new GeoFire(drivers);
         setUpLocation();
+
+        mService = Common.getGoogleAPI();
+    }
+
+    private void getDirection() {
+        currentPosition = new LatLng(mLastLocation.getLatitude(),
+                mLastLocation.getLongitude());
+        String requestApi = null;
+        try {
+            requestApi = "https://maps.google.com/maps/api/directions/json?"+
+                    "mode=driving&"+
+                    "transit_routing_preferences=less_driving&"+
+                    "origin="+currentPosition.latitude+","+currentPosition.longitude+"&"+
+                    "destination="+destination+"&"+
+                    "keys="+getResources().getString(R.string.google_directions_api);
+
+            mService.getPath(requestApi)
+                    .enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            try {
+                                JSONObject jsonObject = new JSONObject(response.body().toString());
+                                JSONArray jsonArray = jsonObject.getJSONArray("routes");
+                                for(int i=0;i<jsonArray.length();i++)
+                                {
+                                    JSONObject route = jsonArray.get(i);
+                                    JSONObject poly = route.getJSONObject("overview_poluline");
+                                    String polyline = poly.getString("points");
+                                    polyLineList = decodePoly(polyline);
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+                            Toast.makeText(WelcomeActivity.this, ""+t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void setUpLocation() {
@@ -210,14 +304,14 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
                                 if(mCurrent!=null)
                                     mCurrent.remove();
                                 mCurrent = mMap.addMarker(new MarkerOptions()
-                                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher_background))
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car))
                                 .position(new LatLng(latitude,longitude))
                                 .title("You"));
 
                                 //Move camera to this position.
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude),15.0f));
                                 
-                                rotateMarker(mCurrent,-360,mMap);
+                               // rotateMarker(mCurrent,-360,mMap);
                             }
                         });
             }
@@ -276,8 +370,14 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
      * installed Google Play services and returned to the app.
      */
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(GoogleMap googleMap)
+    {
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setIndoorEnabled(false);
+        mMap.setBuildingsEnabled(false);
+        mMap.setTrafficEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
     }
 
     @Override

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">We Drive You</string>
     <string name="title_activity_maps">Map</string>
+    <string name="google_directions_api">AIzaSyDnMWoL7DaisMdDDs2e8h1_gu8cCG</string>
 </resources>
