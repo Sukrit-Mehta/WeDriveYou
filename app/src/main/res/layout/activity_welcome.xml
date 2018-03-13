@@ -15,18 +15,28 @@
         android:weightSum="10"
         android:id="@+id/LL_EditText">
         
-        <EditText
+       <!-- <EditText
             android:id="@+id/edtPlace"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="7.5"
             android:hint="Enter destination."/>
-        <Button
+  -->
+        <fragment
+            android:id="@+id/place_autocomplete_fragment"
+            android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="5"
+            />
+
+       <!-- <Button
             android:id="@+id/btnGo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2.5"
-            android:text="GO"/>
+            android:text="GO"/>-->
         
         
     </LinearLayout>

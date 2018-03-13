@@ -13,11 +13,8 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.sukrit.wedriveyou.R;
@@ -29,9 +26,13 @@ import com.github.glomadrian.materialanimatedswitch.MaterialAnimatedSwitch;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -97,8 +98,8 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
     LatLng startPosition, endPosition, currentPosition;
 
     int index, next;
-    Button btnGo;
-    EditText edtPlace;
+    //Button btnGo;
+    PlaceAutocompleteFragment places;
     String destination;
     PolylineOptions polylineOptions, blackPolylineOptions;
     Polyline blackPolyline, greyPolyline;
@@ -141,10 +142,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
             valueAnimator.start();
             handler.postDelayed(this,3000);
-
-
-
-
 
         }
     };
@@ -196,7 +193,31 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         //Init view
 
         polyLineList = new ArrayList<>();
-        btnGo = findViewById(R.id.btnGo);
+
+        //Places API Autocomplete
+        places = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        places.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                if(location_switch.isChecked())
+                {
+                    destination = place.getAddress().toString();
+                    destination=destination.replace(" ","+");
+                    getDirection();
+                }
+                else
+                {
+                    Toast.makeText(WelcomeActivity.this, "Please come online.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Status status) {
+                Toast.makeText(WelcomeActivity.this, ""+status.toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        /*btnGo = findViewById(R.id.btnGo);
         edtPlace = findViewById(R.id.edtPlace);
 
         btnGo.setOnClickListener(new View.OnClickListener() {
@@ -206,7 +227,7 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
                 destination = destination.replace(" ","+");
                 getDirection();
             }
-        });
+        });*/
 
         location_switch = findViewById(R.id.location_switch);
         location_switch.setOnCheckedChangeListener(new MaterialAnimatedSwitch.OnCheckedChangeListener() {
