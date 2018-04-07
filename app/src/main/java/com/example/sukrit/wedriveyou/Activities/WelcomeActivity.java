@@ -252,7 +252,7 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
-        drivers = FirebaseDatabase.getInstance().getReference("Drivers");
+        drivers = FirebaseDatabase.getInstance().getReference(Common.driver_tb2);
         geoFire = new GeoFire(drivers);
         setUpLocation();
 

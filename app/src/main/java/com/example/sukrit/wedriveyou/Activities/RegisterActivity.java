@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.example.sukrit.wedriveyou.Models.User;
 import com.example.sukrit.wedriveyou.R;
+import com.example.sukrit.wedriveyou.Utils.Common;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -79,7 +80,7 @@ public class RegisterActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-                            mUserDatabase = mDatabase.child("Users").child(firebaseUser.getUid());
+                            mUserDatabase = mDatabase.child(Common.user_driver_tb2).child(firebaseUser.getUid());
                             mUserDatabase.keepSynced(true);
 
                             User user = new User(email,name,phone,password);
