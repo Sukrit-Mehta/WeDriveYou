@@ -17,6 +17,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
+import com.example.sukrit.wedriveyou.Models.Token;
 import com.example.sukrit.wedriveyou.R;
 import com.example.sukrit.wedriveyou.Remote.IGoogleApi;
 import com.example.sukrit.wedriveyou.Utils.Common;
@@ -52,6 +53,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,7 +78,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
 
     private static int UPDATE_INTERVAL = 5000;
     private static int FASTEST_INTERVAL = 3000;
@@ -257,11 +258,21 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         setUpLocation();
 
         mService = Common.getGoogleAPI();
+        updateTokenToServer(FirebaseInstanceId.getInstance().getToken());
+
+    }
+
+    private void updateTokenToServer(String refreshedToken) {
+       DatabaseReference dbToken = FirebaseDatabase.getInstance().getReference().child(Common.token_tb1);
+
+        Token token = new Token(refreshedToken);
+        dbToken.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .setValue(token);
     }
 
     private void getDirection() {
-        currentPosition = new LatLng(mLastLocation.getLatitude(),
-                mLastLocation.getLongitude());
+        currentPosition = new LatLng(Common.mLastLocation.getLatitude(),
+                Common.mLastLocation.getLongitude());
         String requestApi = null;
         try {
             requestApi = "https://maps.google.com/maps/api/directions/json?"+
@@ -472,13 +483,13 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
         {
             return;
         }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if(mLastLocation!=null)
+        Common.mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(Common.mLastLocation!=null)
         {
             if(location_switch.isChecked())
             {
-                final  double latitude = mLastLocation.getLatitude();
-                final  double longitude = mLastLocation.getLongitude();
+                final  double latitude = Common.mLastLocation.getLatitude();
+                final  double longitude = Common.mLastLocation.getLongitude();
                 geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(),
                         new GeoLocation(latitude, longitude)
                         , new GeoFire.CompletionListener() {
@@ -582,7 +593,7 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
+        Common.mLastLocation = location;
         displayLocation();
     }
 }

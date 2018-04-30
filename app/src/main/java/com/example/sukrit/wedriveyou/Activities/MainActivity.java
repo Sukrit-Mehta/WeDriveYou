@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.example.sukrit.wedriveyou.R;
+import com.google.firebase.auth.FirebaseAuth;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -22,19 +23,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btnRegister = findViewById(R.id.btnRegister);
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,RegisterActivity.class));
-            }
-        });
-        btnSignIn = findViewById(R.id.btnSignIn);
-        btnSignIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this,LoginActivity.class));
-            }
-        });
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null)
+        {
+            startActivity(new Intent(MainActivity.this,WelcomeActivity.class));
+        }
+        else {
+
+            btnRegister = findViewById(R.id.btnRegister);
+            btnRegister.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(MainActivity.this, RegisterActivity.class));
+                }
+            });
+            btnSignIn = findViewById(R.id.btnSignIn);
+            btnSignIn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                }
+            });
+        }
     }
 }

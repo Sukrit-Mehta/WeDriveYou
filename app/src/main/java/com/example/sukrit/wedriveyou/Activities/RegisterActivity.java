@@ -1,6 +1,7 @@
 package com.example.sukrit.wedriveyou.Activities;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
@@ -92,10 +93,10 @@ public class RegisterActivity extends AppCompatActivity {
                                             if (task.isSuccessful()) {
 
                                                 Toast.makeText(RegisterActivity.this, "You have successfully registered", Toast.LENGTH_SHORT).show();
-//                                                Intent mainIntent = new Intent(RegisterActivity.this, HomeActivity.class);
-//                                                mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                                                startActivity(mainIntent);
-//                                                finish();
+                                                Intent mainIntent = new Intent(RegisterActivity.this, WelcomeActivity.class);
+                                                mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                startActivity(mainIntent);
+                                                finish();
                                                 progressDialog.dismiss();
                                             }
                                             else {
@@ -107,7 +108,6 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                         else {
                             progressDialog.dismiss();
-
                         }
                     }
                 });
