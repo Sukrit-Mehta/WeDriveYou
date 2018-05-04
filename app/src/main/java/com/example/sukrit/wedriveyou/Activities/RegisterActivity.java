@@ -112,33 +112,4 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 });
     }
-
-/*
-    private void registerUser(final User user) {
-        mAuth.createUserWithEmailAndPassword(user.getEmail(),user.getPassword())
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful())
-                        {
-                            mDatabaseUsers = mDatabase.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                            mDatabaseUsers
-                                    .setValue(user)
-                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            Toast.makeText(RegisterActivity.this, "User registered Successfully.", Toast.LENGTH_SHORT).show();
-                                            progressDialog.dismiss();
-                                        }
-                                    });
-                        }
-                        else
-                        {
-                            progressDialog.dismiss();
-                            Toast.makeText(RegisterActivity.this, "Some error occured.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
-*/
 }

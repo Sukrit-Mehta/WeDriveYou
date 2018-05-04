@@ -19,7 +19,6 @@ public class MyFirebaseMessaging extends FirebaseMessagingService {
         Log.d("DHON", "onMessageReceived: "+remoteMessage.getFrom());
         Log.d("DHON", "onMessageReceived: "+remoteMessage.getTo());
         Log.d("DHON", "onMessageReceived: "+remoteMessage.getMessageId());
-        Log.d("DHON", "onMessageReceived: "+remoteMessage.getData().toString());
 
         Intent intent = new Intent(getBaseContext(),CustomerCall.class);
         intent.putExtra("remoteMessage",remoteMessage.getNotification().getBody());

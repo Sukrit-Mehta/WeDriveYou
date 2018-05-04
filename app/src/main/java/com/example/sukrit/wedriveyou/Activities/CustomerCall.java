@@ -1,15 +1,28 @@
 package com.example.sukrit.wedriveyou.Activities;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.sukrit.wedriveyou.R;
 import com.example.sukrit.wedriveyou.Remote.IGoogleApi;
 import com.example.sukrit.wedriveyou.Utils.Common;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,17 +39,22 @@ public class CustomerCall extends AppCompatActivity {
     IGoogleApi iGoogleApiService;
     String remoteMessage;
     Double lat,lng;
-    String distance,duration,address;
+    String distance,duration,address,riderId, riderPhone,riderName;
     public static final String TAG = "DHON";
+    Button btnConfirmRide;
+    DatabaseReference mOngoingRidesDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customer_call);
 
+        mOngoingRidesDb = FirebaseDatabase.getInstance().getReference().child("OnGoingRides");
+
         txtTime = findViewById(R.id.txtTime);
         txtDistance = findViewById(R.id.txtDistance);
         txtAddress = findViewById(R.id.txtAddress);
+        btnConfirmRide = findViewById(R.id.btnConfirmRide);
 
         iGoogleApiService = Common.getGoogleAPI();
 
@@ -58,6 +76,68 @@ public class CustomerCall extends AppCompatActivity {
             double lat = getIntent().getDoubleExtra("lat",0.0);
             double lng = getIntent().getDoubleExtra("lng",0.0);*/
            // getDirection(lat,lng);
+
+            btnConfirmRide.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "onClick: "+btnConfirmRide.getTag());
+                    if(btnConfirmRide.getTag()!="call")
+                    {
+                        FirebaseDatabase.getInstance().getReference().child("OnGoingRides").child(FirebaseAuth.getInstance().
+                                getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                riderId = dataSnapshot.child("riderId").getValue().toString();
+                                Log.d(TAG, "onDataChange: riderId : "+riderId);
+                                FirebaseDatabase.getInstance().getReference().child("Riders").child(riderId).addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        riderPhone = dataSnapshot.child("phone").getValue().toString();
+                                        riderName = dataSnapshot.child("name").getValue().toString();
+                                        Log.d(TAG, "onDataChange: phone: "+riderPhone+"\n name : "+riderName);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                        handleConfirmRide();
+                    }
+                    else if(btnConfirmRide.getTag()=="call")
+                    {
+                        Log.d(TAG, "onClick: pp: "+riderPhone);
+                        Intent intent = new Intent(Intent.ACTION_CALL);
+                        intent.setData(Uri.parse("tel:" + riderPhone));
+                        if (ActivityCompat.checkSelfPermission(CustomerCall.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            //    ActivityCompat#requestPermissions
+                            // here to request the missing permissions, and then overriding
+                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                            //                                          int[] grantResults)
+                            // to handle the case where the user grants the permission. See the documentation
+                            // for ActivityCompat#requestPermissions for more details.
+                            return;
+                        }
+                        startActivity(intent);
+                    }
+                }
+            });
+    }
+
+    private void handleConfirmRide() {
+        mOngoingRidesDb.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("rideConfirmed").setValue(true);
+        btnConfirmRide.setText("Call Customer");
+        btnConfirmRide.setBackground(getResources().getDrawable(R.color.btnSignIn));
+        btnConfirmRide.setTag("call");
 
     }
 

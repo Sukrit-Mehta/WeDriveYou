@@ -217,19 +217,6 @@ public class WelcomeActivity extends FragmentActivity implements OnMapReadyCallb
                 Toast.makeText(WelcomeActivity.this, ""+status.toString(), Toast.LENGTH_SHORT).show();
             }
         });
-
-        /*btnGo = findViewById(R.id.btnGo);
-        edtPlace = findViewById(R.id.edtPlace);
-
-        btnGo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                destination = edtPlace.getText().toString();
-                destination = destination.replace(" ","+");
-                getDirection();
-            }
-        });*/
-
         location_switch = findViewById(R.id.location_switch);
         location_switch.setOnCheckedChangeListener(new MaterialAnimatedSwitch.OnCheckedChangeListener() {
             @Override
